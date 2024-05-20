@@ -1,0 +1,15 @@
+.animate__animated {
+	animation-duration: 1s;
+}
+.animate__fadeOut {
+	animation-name: fadeOut;
+}
+
+@keyfreams fadeOut {
+	from {
+		opacity : 1;
+	}
+	to {
+		opacity : 0;
+	}
+}

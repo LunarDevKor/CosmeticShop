@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<properties resource="properties/db.properties" />
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		<setting name="jdbcTypeForNull" value="NULL"/>
+	</settings>
+
+	<typeAliases>
+		<typeAlias type="com.cosmetic.member.account.vo.AccountVO" alias="memberVO"/>
+		<typeAlias type="com.cosmetic.member.account.vo.SkinVO" alias="skinVO"/>
+		<typeAlias type="com.cosmetic.member.point.vo.PointVO" alias="pointVO"/>
+		<typeAlias type="com.cosmetic.member.coupon.vo.CouponVO" alias="couponVO"/>
+		<typeAlias type="com.cosmetic.member.wishlist.vo.WishListVO" alias="wishVO"/>
+		<typeAlias type="com.cosmetic.member.cart.vo.CartVO" alias="cartVO"/>
+		<typeAlias type="com.cosmetic.product.vo.ProdVO" alias="prodVO"/>
+		<typeAlias type="com.cosmetic.product.vo.ReviewVO" alias="reviewVO"/>
+		<typeAlias type="com.cosmetic.common.vo.AtchFileDetailVO" alias="AtchFileDetailVO"/>
+		<typeAlias type="com.cosmetic.admin.notice.vo.NoticeVO" alias="noticeVO"/>
+		<typeAlias type="com.cosmetic.admin.category.vo.CategoryVO" alias="categoryVO"/>
+		<typeAlias type="com.cosmetic.admin.vo.QNAVO" alias="QNAVO"/>
+		<typeAlias type="com.cosmetic.admin.vo.OrderVO" alias="OrderVO"/>
+		<typeAlias type="com.cosmetic.admin.vo.GradeVO" alias="gradeVO"/>
+		<typeAlias type="com.cosmetic.admin.vo.ShipDetailVo" alias="ShipDetailVo"/>
+		<typeAlias type="com.cosmetic.admin.vo.OutProductVO" alias="OutProductVo"/>
+		<typeAlias type="com.cosmetic.admin.vo.BrandVO" alias="BrandVo"/>
+		<typeAlias type="com.cosmetic.admin.vo.ChartVO" alias="chartVo"/>
+	</typeAliases>
+	
+	<environments default="dev">
+	
+		<environment id="dev">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="${driver}"/>
+				<property name="url" value="${url}"/>
+				<property name="username" value="${username}"/>
+				<property name="password" value="${password}"/>
+				<property name="poolMaximumActiveConnections" value="2"/> <!-- 활성화된 최대 커넥션수 -->
+				<property name="poolMaximumIdleConnections" value="2"/> <!-- 유휴상태에서 최대 커넥션수 -->
+			</dataSource>
+		</environment>
+
+	</environments>
+	
+	<mappers>
+		<mapper resource="mappers/memberMapper.xml"/>
+		<mapper resource="mappers/skinMapper.xml"/>
+		<mapper resource="mappers/pointMapper.xml"/>
+		<mapper resource="mappers/couponMapper.xml"/>
+		<mapper resource="mappers/wishMapper.xml"/>
+		<mapper resource="mappers/productMapper.xml"/>
+		<mapper resource="mappers/reviewMapper.xml"/>
+		<mapper resource="mappers/atchFile.xml"/>
+		<mapper resource="mappers/cartMapper.xml"/>
+		<mapper resource="mappers/noticeMapper.xml"/>
+		<mapper resource="mappers/categoryMapper.xml"/>
+		<mapper resource="mappers/qnaMapper.xml"/>
+		<mapper resource="mappers/orderMapper.xml"/>
+		<mapper resource="mappers/manageMapper.xml"/>
+		<mapper resource="mappers/shipMapper.xml"/>
+		<mapper resource="mappers/chartMapper.xml"/>
+	</mappers>
+	
+	
+	
+
+</configuration>

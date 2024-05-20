@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="order">
+
+
+	<update id="orderUpdate" parameterType="OrderVO">
+
+		UPDATE "ORDER"
+		SET
+		ORD_STATUS = 1
+		WHERE ORD_NO = #{ordNo}
+
+	</update>
+
+	<select id="compleList" resultType="OrderVO">
+
+		SELECT ORD_NO
+		, ACC_NO
+		,
+		ORD_TOTALAMT
+		, ORD_USERD_POINT
+		, ORD_SHIPCOST
+		, ORD_PAYMETHOD
+		, ORD_DATE
+		,
+		REFUND_STATUS
+		, ORD_REQ, ORD_STATUS
+		, ORD_RECPNAME
+		, ORD_RECPADDR
+		,
+		ORD_RECPTEL
+		FROM "ORDER"
+		WHERE ORD_NO =#{ordNo}
+
+	</select>
+
+	<select id="countList" resultType="int">
+
+		<!-- SELECT COUNT(*) FROM "ORDER" -->
+
+		select count(*)
+		from "ORDER" o
+		JOIN ACCOUNT AC ON O.ACC_NO = AC.ACC_NO
+		JOIN ORD_DETAIL OD ON O.ORD_NO = OD.ORD_NO
+		JOIN PRODUCT P ON OD.PROD_NO = P.PROD_NO
+		WHERE O.ord_status = 0
+
+	</select>
+
+	<select id="orderList" resultType="java.util.HashMap">
+
+		SELECT A.* FROM (
+		SELECT ROWNUM AS RNUM, B.* FROM (
+		SELECT
+		O.ORD_NO,
+		O.ORD_DATE,
+		OD.ORD_NO AS OD_ORD_NO,
+		P.PROD_NAME,
+		P.FILE_NO,
+		P.PROD_NO,
+		OD.PR_QTY,
+		P.PROD_PRICE,
+		O.ORD_SHIPCOST,
+		O.ORD_STATUS,
+		AC.ID,
+		O.ORD_RECPNAME,
+		O.ORD_TOTALAMT,
+		O.ORD_PAYMETHOD,
+		P.PROD_IMG
+		FROM "ORDER" O
+		JOIN
+		ACCOUNT AC ON
+		O.ACC_NO = AC.ACC_NO
+		JOIN ORD_DETAIL OD ON O.ORD_NO =
+		OD.ORD_NO
+		JOIN
+		PRODUCT P ON OD.PROD_NO = P.PROD_NO
+		WHERE O.ORD_STATUS = 0
+		<if test="searchWord != null and searchWord != ''">
+			AND SD.RECP_NAME LIKE '%' || #{searchWord} || '%'
+		</if>
+		ORDER BY O.ORD_DATE DESC
+		) B
+		WHERE ROWNUM <![CDATA[<=]]>
+		#{end}
+		) A
+		WHERE A.RNUM >= #{start}
+
+	</select>
+
+	<!-- <select id="searchCountList" resultType="int" parameterType="java.util.HashMap"> 
+		</select> -->
+
+	<select id="listSearch" resultType="java.util.HashMap">
+
+		SELECT
+		O.ORD_NO,
+		O.ORD_DATE,
+		OD.ORD_NO AS OD_ORD_NO,
+		P.PROD_NAME,
+		P.FILE_NO,
+		OD.PR_QTY,
+		P.PROD_PRICE,
+		O.ORD_SHIPCOST,
+		O.ORD_STATUS,
+		AC.ID,
+		O.ORD_RECPNAME,
+		O.ORD_TOTALAMT,
+		O.ORD_PAYMETHOD,
+		P.PROD_IMG
+		FROM "ORDER" O
+		JOIN
+		ACCOUNT AC ON O.ACC_NO = AC.ACC_NO
+		JOIN ORD_DETAIL OD ON O.ORD_NO =
+		OD.ORD_NO
+		JOIN PRODUCT P ON OD.PROD_NO = P.PROD_NO
+		WHERE
+		<choose>
+
+			<when test='cate == "od_id"'>
+				OD.ORD_NO LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "mb_id"'>
+				AC.ID LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "name"'>
+				O.ORD_RECPNAME LIKE '%' || #{search} || '%'
+			</when>
+		</choose>
+		ORDER BY O.ORD_DATE DESC
+
+	</select>
+
+	<select id="orderProd" resultType="java.util.HashMap">
+		SELECT P.*, c.comm_code_name,
+		g.grd_accr
+		FROM PRODUCT P
+		LEFT JOIN COMM_CODE C ON P.PROD_CATE_NO =
+		C.COMM_CODE
+		LEFT JOIN GRADE G ON G.GRD_NO = #{grdNo}
+		WHERE PROD_NO =
+		#{prodNo}
+	</select>
+
+	<select id="releaseList" resultType="OrderVO">
+		SELECT
+		O.ORD_NO as ordNo,
+		D.PROD_NO as prodNo,
+		D.PR_PRICE as ProdPrice,
+		D.PR_QTY as quantity,
+		D.ORD_DATE as ordDate
+		FROM "ORDER" O
+		INNER JOIN ORD_DETAIL D ON O.ORD_NO
+		= D.ORD_NO
+		WHERE O.ORD_STATUS = 1
+	</select>
+
+	<insert id="releaseInsert" parameterType="OrderVO">
+		INSERT INTO OUT_PRODUCT (OP_NO, PROD_NO, OP_PRICE, OP_QTY, OP_DATE)
+		VALUES (out_seq.nextVal, #{prodNo}, #{ProdPrice}, #{quantity}, #{ordDate})
+	</insert>
+	<select id="countByProdNoAndOrdDateTimeAndQuantity"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM OUT_PRODUCT
+		WHERE PROD_NO = #{prodNo} AND OP_DATE = #{ordDateTime} AND OP_QTY =
+		#{quantity}
+	</select>
+	<select id="releaseListAll" resultType="java.util.HashMap">
+		SELECT A.* FROM (
+		SELECT ROWNUM AS RNUM, B.* FROM (
+		SELECT *
+		FROM OUT_PRODUCT
+		) B
+		WHERE ROWNUM <![CDATA[<=]]>
+		#{end}
+		) A
+		WHERE A.RNUM >= #{start}
+	</select>
+	<select id="releaseSearch" parameterType="String"
+		resultType="OutProductVO">
+		SELECT
+		PROD_NO,
+		SUM(OP_PRICE) AS OP_PRICE,
+		SUM(OP_QTY) AS OP_QTY
+		FROM OUT_PRODUCT
+		WHERE PROD_NO = #{search}
+		GROUP BY PROD_NO
+	</select>
+	<select id="releaseCountList" resultType="int">
+
+		SELECT COUNT(*) FROM
+		OUT_PRODUCT
+
+	</select>
+	<insert id="insertOrder">
+		INSERT INTO "ORDER"
+		(
+		ORD_NO,
+		ACC_NO,
+		ORD_TOTALAMT,
+		ORD_USERD_POINT,
+		ORD_PAYMETHOD,
+		ORD_RECPNAME,
+		ORD_RECPADDR,
+		ORD_RECPTEL,
+		ORD_SHIPNOTICE
+		)
+		VALUES(
+		#{uid},
+		#{accNo},
+		#{totalPrice},
+		#{usePoint},
+		#{paymethod},
+		#{ordRecpName},
+		#{addr},
+		#{ordRecptel},
+		#{ordShipnotice}
+		)
+	</insert>
+
+	<insert id="insertDetailOrder">
+		INSERT INTO ORD_DETAIL
+		(
+		ORD_NO,
+		PROD_NO,
+		PR_PRICE,
+		PR_QTY
+		)
+		VALUES
+		(
+		#{uid},
+		#{prodNo},
+		#{prodPrice},
+		#{cartQty}
+		)
+	</insert>
+	
+	<select id="getMyHistory" resultType="OrderVO">
+		SELECT O.ORD_NO, O.ORD_TOTALAMT, O.ORD_DATE, od.pr_qty as quantity, O.ORD_STATUS, P.PROD_NAME as productName, P.PROD_IMG, P.PROD_NO
+		FROM "ORDER" O
+		JOIN ORD_DETAIL OD ON O.ORD_NO = OD.ORD_NO
+		JOIN PRODUCT P ON P.PROD_NO = OD.PROD_NO
+		WHERE o.acc_no = #{accNo}
+	</select>
+	
+	<select id="getMypageOrderHistory" resultType="OrderVO">
+		SELECT ROWNUM, O.*
+		FROM (
+		    SELECT O.ORD_NO, O.ORD_TOTALAMT, O.ORD_DATE, od.pr_qty as quantity, O.ORD_STATUS, P.PROD_NAME as productName, P.PROD_IMG, P.PROD_NO
+		    FROM "ORDER" O
+		    JOIN ORD_DETAIL OD ON O.ORD_NO = OD.ORD_NO
+		    JOIN PRODUCT P ON p.prod_no = od.prod_no
+		    WHERE o.acc_no = #{accNo}
+		    ORDER BY O.ORD_DATE DESC
+		) O
+		WHERE ROWNUM <![CDATA[<=]]> 5
+	</select>
+
+</mapper>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="manage">
+
+
+
+
+<select id="manageList" resultType="java.util.HashMap">
+    SELECT A.* FROM (
+        SELECT ROWNUM AS RNUM, B.* FROM (
+            SELECT 
+                ACC.ACC_NO,
+                ACC.NAME,
+                ACC.ID,
+                GRD.GRD_NAME, 
+                ACC.TEL,
+                ACC.REG_DATE,
+                ACC.POINT
+            FROM ACCOUNT ACC
+            LEFT JOIN GRADE GRD ON ACC.GRD_NO = GRD.GRD_NO 
+            WHERE AUTH = 0 
+            <if test="searchWord != null and searchWord != ''">
+                AND ACC.NAME LIKE '%' || #{searchWord} || '%'
+            </if>
+            ORDER BY ACC_NO DESC
+        ) B
+        WHERE ROWNUM <![CDATA[<=]]> #{end}
+    ) A
+    WHERE A.RNUM >= #{start}
+</select>
+
+<select id="listSearch" resultType="java.util.HashMap">
+    SELECT A.* FROM (
+        SELECT ROWNUM AS RNUM, B.* FROM (
+            SELECT 
+                a.*, 
+                g.grd_name
+            FROM account a
+            LEFT JOIN grade g ON a.grd_no = g.grd_no
+            WHERE
+            <choose>
+                <!-- grdNo와 id가 null이 아닌 경우 -->
+                <when test="grdNo != null and id != null">
+                    a.grd_No = #{grdNo} AND a.id LIKE '%'|| #{id} ||'%'
+                </when>
+                <!-- grdNo와 name이 null이 아닌 경우 -->
+                <when test="grdNo != null and name != null">
+                    a.grd_No = #{grdNo} AND a.name LIKE '%'|| #{name} ||'%'
+                </when>
+                <!-- grdNo와 tel이 null이 아닌 경우 -->
+                <when test="grdNo != null and tel != null">
+                    a.grd_No = #{grdNo} AND a.tel LIKE '%'|| #{tel} ||'%'
+                </when>
+                <!-- grdNo만 null이 아닌 경우 -->
+                <when test="grdNo != null">
+                    a.grd_No = #{grdNo} 
+                </when>
+                <!-- id만 null이 아닌 경우 -->
+                <when test="id != null">
+                    a.id LIKE '%'|| #{id} ||'%'
+                </when>
+                <!-- name만 null이 아닌 경우 -->
+                <when test="name != null">
+                    a.name LIKE '%'|| #{name} ||'%'
+                </when>
+                <!-- tel만 null이 아닌 경우 -->
+                <when test="tel != null">
+                    a.tel LIKE '%'|| #{tel} ||'%'
+                </when>
+                <!-- 위의 조건이 모두 만족하지 않는 경우 -->
+                <otherwise>
+                    1=1
+                </otherwise>
+            </choose>
+        ) B
+        WHERE ROWNUM <![CDATA[<=]]> #{end}
+    ) A
+    WHERE A.RNUM >= #{start}
+</select>
+
+<select id="gradeList" resultType="gradeVO">
+ SELECT 
+       GRD_NO,
+       GRD_NAME,
+       GRD_ACCR,
+       GRD_PRICE
+     FROM GRADE
+     order by GRD_NO DESC
+</select>
+	<update id="gradeUpdate">
+	UPDATE GRADE
+	SET GRD_NAME = #{grdName},
+	    GRD_ACCR = #{grdAccr},
+	    GRD_PRICE = #{grdPrice}
+    WHERE GRD_NO = #{grdNo} 
+	
+	</update>
+	<update id="manageUpdate">
+	UPDATE account
+	SET ssn = #{ssn},
+	    email = #{email},
+	    tel = #{tel},
+	    addr1 = #{addr1},
+	    addr2 = #{addr2},
+	    point = #{point}
+    WHERE acc_NO = #{accNo} 
+	
+	</update>
+	<select id="manageDetail" resultType="memberVO">
+ SELECT * from account 
+    WHERE acc_no = #{accNo}
+</select>
+
+<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM ACCOUNT
+  		
+  	</select>
+  	
+  <select id="searchCountList" resultType="int" parameterType="java.util.HashMap">
+    SELECT COUNT(*) FROM ACCOUNT 
+    <where>
+        <if test="grdNo != 0">
+            AND GRD_NO = #{grdNo}
+        </if>
+        
+        <if test='search != null and search != ""'>
+            <choose>
+                <when test='cate == "id"'>
+                    AND ID LIKE '%' || #{search} || '%'
+                </when>
+                <when test='cate == "name"'>
+                    AND NAME LIKE '%' || #{search} || '%'
+                </when>
+                <when test='cate == "tel"'>
+                    AND TEL LIKE '%' || #{search} || '%'
+                </when>
+            </choose>
+        </if>
+    </where>
+</select>
+	
+ <select id="pointManage" resultType="memberVO">
+ SELECT
+     a.acc_no,
+     g.grd_name
+ FROM
+     account a
+     JOIN grade g ON a.grd_no = g.grd_no
+</select>
+     <update id="updatePoint">
+  UPDATE account
+  SET point = point + #{pointQty}
+  WHERE GRD_NO BETWEEN #{grdNoSt} AND #{grdNoEnd}
+</update>
+
+	<insert id="insertPoint">
+  INSERT INTO POINT_HISTORY (PH_NO, ACC_NO, UPD_CONTENT, POINT_USED, POINT_TYPE,UPD_DATE)
+  SELECT PH_SEQ.nextVal, acc_no, #{pointCon}, #{pointQty}, 0 , SYSDATE
+  FROM ACCOUNT
+  WHERE GRD_NO BETWEEN #{grdNoSt} AND #{grdNoEnd}
+</insert>
+<insert id="couponInsert">
+  INSERT INTO COUPON (CP_NO, ACC_NO, CP_DISCOUNT, CP_NAME, CP_PMTDATE,CP_EXPDATE)
+  SELECT CP_SEQ.nextVal, acc_no, #{couponDis}, #{couponCon},SYSDATE, SYSDATE + #{couponPeriod}
+  FROM ACCOUNT
+  WHERE GRD_NO BETWEEN #{grdNoSt} AND #{grdNoEnd}
+</insert>
+<select id="couponManage" resultType="memberVO">
+ SELECT
+     a.acc_no,
+     g.grd_name
+ FROM
+     account a
+     JOIN grade g ON a.grd_no = g.grd_no
+</select>
+<select id="brandList" resultType="BrandVO">
+ SELECT
+ BR_NO,
+ BR_NAME,
+ BR_IMG
+   
+ FROM
+     BRAND
+     
+</select>
+<select id="brandDetailList" resultType="ProdVO">
+ SELECT
+    *
+  FROM
+    PRODUCT
+  WHERE
+    BR_NO = #{brNo}
+</select>
+<select id="brandsearchList" resultType="BrandVO">
+ SELECT
+    *
+  FROM
+    BRAND
+  WHERE
+    BR_NAME LIKE '%' || #{search} || '%'
+</select>
+<select id="brandCountList" resultType="int">
+  		SELECT COUNT(*) FROM PRODUCT
+  		WHERE BR_NO = #{brNo}
+  		
+</select>
+<select id="recommendList" resultType="ProdVO">
+   <![CDATA[
+    SELECT * FROM
+        (SELECT * FROM PRODUCT ORDER BY DBMS_RANDOM.VALUE)
+    WHERE ROWNUM <= 20
+    ]]>
+</select>
+</mapper>

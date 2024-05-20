@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ship">
+
+
+	<insert id="orderInsert">
+		<!-- INSERT INTO SHIP_DETAILS (SHIP_NO, ORD_NO,
+		RECP_NAME,
+		RECP_ADDR, RECP_TEL, SHIP_INVOICENO, SHIP_NOTICE)
+		SELECT
+
+		SHIP_DETAILS_SEQ.nextVal,
+		O.ORD_NO,
+		O.ORD_RECPNAME,
+		O.ORD_RECPADDR,
+		O.ORD_RECPTEL,
+		#{shipInvoiceno},
+		O.ORD_SHIPNOTICE
+		FROM
+		"ORDER" O
+		WHERE
+		ORD_STATUS = 1 -->
+		
+		INSERT INTO SHIP_DETAILS (SHIP_NO, ORD_NO,
+		RECP_NAME,
+		RECP_ADDR, RECP_TEL, SHIP_INVOICENO, SHIP_NOTICE)
+		SELECT
+
+		SHIP_DETAILS_SEQ.nextVal,
+		O.ORD_NO,
+		O.ORD_RECPNAME,
+		O.ORD_RECPADDR,
+		O.ORD_RECPTEL,
+		#{shipInvoiceno},
+		O.ORD_SHIPNOTICE
+		FROM
+		"ORDER" O
+		WHERE
+		O.ORD_NO = #{ordNo}
+		
+    	
+	</insert>
+
+
+	<select id="selectAllship" resultType="ShipDetailVo">
+
+		SELECT
+		SHIP_NO,
+		ORD_NO,
+		RECP_NAME,
+		RECP_ADDR,
+		RECP_TEL,
+		SHIP_STDATE,
+		SHIP_CPDATE,
+		SHIP_INVOICENO,
+		SHIP_STATUS,
+		SHIP_NOTICE
+		FROM SHIP_DETAILS
+		ORDER BY SHIP_STDATE DESC;
+
+	</select>
+
+	<select id="countList" resultType="int">
+
+		SELECT COUNT(*) FROM
+		SHIP_DETAILS
+
+	</select>
+
+	<select id="shipList" resultType="java.util.HashMap">
+
+		SELECT A.* FROM (
+		SELECT ROWNUM AS RNUM, B.* FROM (
+		SELECT
+		SD.SHIP_NO,
+		SD.ORD_NO,
+		SD.RECP_NAME,
+		SD.RECP_ADDR,
+		SD.RECP_TEL,
+		SD.SHIP_STDATE,
+		SD.SHIP_CPDATE,
+		SD.SHIP_INVOICENO,
+		SD.SHIP_STATUS,
+		SD.SHIP_NOTICE
+		FROM
+		SHIP_DETAILS SD
+		WHERE SD.SHIP_STATUS = 0
+		<if test="searchWord != null and searchWord != ''">
+			AND SD.RECP_NAME LIKE '%' || #{searchWord} || '%'
+		</if>
+		ORDER BY SD.SHIP_STDATE DESC
+		) B
+		WHERE ROWNUM <![CDATA[<=]]>
+		#{end}
+		) A
+		WHERE A.RNUM >= #{start}
+
+	</select>
+
+	<select id="listSearch" resultType="java.util.HashMap">
+
+		SELECT A.* FROM (
+		SELECT ROWNUM AS RNUM, B.* FROM (
+		SELECT
+		SD.SHIP_NO,
+		SD.ORD_NO,
+		SD.RECP_NAME,
+		SD.RECP_ADDR,
+		SD.RECP_TEL,
+		SD.SHIP_STDATE,
+		SD.SHIP_CPDATE,
+		SD.SHIP_INVOICENO,
+		SD.SHIP_STATUS,
+		SD.SHIP_NOTICE
+		FROM SHIP_DETAILS SD
+		WHERE SD.SHIP_STATUS = 0
+		<choose>
+			<when test='cate == "od_id"'>
+				AND SD.ORD_NO LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "b_name"'>
+				AND SD.RECP_NAME LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "phone"'>
+				AND SD.RECP_TEL LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "delivery"'>
+				AND SD.SHIP_INVOICENO LIKE '%' || #{search} || '%'
+			</when>
+		</choose>
+		ORDER BY SD.SHIP_STDATE DESC
+		) B
+		WHERE ROWNUM <![CDATA[<=]]>
+		#{end}
+		) A
+		WHERE A.RNUM >= #{start}
+
+	</select>
+
+	<select id="searchCountList" resultType="int"
+		parameterType="java.util.HashMap">
+
+		SELECT COUNT(*)
+
+		FROM SHIP_DETAILS SD
+		WHERE SD.SHIP_STATUS = 0
+		<choose>
+			<when test='cate == "od_id"'>
+				AND SD.ORD_NO LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "b_name"'>
+				AND SD.RECP_NAME LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "phone"'>
+				AND SD.RECP_TEL LIKE '%' || #{search} || '%'
+			</when>
+			<when test='cate == "delivery"'>
+				AND SD.SHIP_INVOICENO LIKE '%' || #{search} || '%'
+			</when>
+		</choose>
+
+	</select>
+
+
+</mapper>

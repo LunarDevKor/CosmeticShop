@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wish">
+	<insert id="addWishList">
+		INSERT INTO WISHLIST
+		(ACC_NO, PROD_NO, WISH_DATE)
+		VALUES
+		(#{accNo}, #{prodNo}, sysdate)
+	</insert>
+	
+	<select id="isWishIn" resultType="int">
+		SELECT COUNT(*)
+		FROM WISHLIST
+		WHERE ACC_NO = #{accNo} AND PROD_NO = #{prodNo}
+	</select>
+	
+	<select id="getMyWishList" resultType="java.util.HashMap" resultSetType="SCROLL_INSENSITIVE">
+		SELECT W.*, P.PROD_NAME, P.PROD_PRICE, P.PROD_CONTENT, P.PROD_IMG
+		FROM WISHLIST W
+        LEFT JOIN PRODUCT P ON P.PROD_NO = W.PROD_NO
+		WHERE ACC_NO = #{accNo}
+	</select>
+	
+	<select id="getWishListByRownum" resultType="java.util.HashMap">
+		SELECT ROWNUM, W.*
+		FROM (
+        SELECT W.*, P.PROD_NAME, P.PROD_PRICE, P.PROD_CONTENT, P.PROD_IMG
+        FROM WISHLIST W
+        LEFT JOIN PRODUCT P ON P.PROD_NO = W.PROD_NO
+		WHERE ACC_NO = 130
+        ORDER BY W.WISH_DATE
+        )W
+		WHERE ROWNUM <![CDATA[<=]]> 5
+	</select>
+	
+	<delete id="deleteWish">
+		DELETE WISHLIST
+		WHERE ACC_NO = #{accNo} AND PROD_NO = #{prodNo}
+	</delete>
+</mapper>

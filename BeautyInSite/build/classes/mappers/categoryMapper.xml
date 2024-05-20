@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="category">
+	<select id="getCategoryCodeList" resultType="categoryVO">
+		SELECT A.*,
+		(SELECT CODE_NAME FROM PNT_CODE WHERE A.PARENT_CODE = PARENT_CODE) AS CODE_NAME
+		FROM COMM_CODE A
+		WHERE PARENT_CODE != 'B01'
+	</select>
+	
+	<update id="categoryUpdate">
+		update PNT_CODE
+		set CODE_NAME = #{codeName}
+		where PARENT_CODE = #{parentCode}		
+	</update>
+	
+	<update id="categoryCommUpdate">
+		update COMM_CODE
+		set COMM_CODE_NAME = #{commCodeName}
+		where PARENT_CODE = #{parentCode} and COMM_CODE = #{commCode}
+	</update>
+	
+	<insert id="categoryCreate">
+        INSERT INTO comm_code
+        (COMM_CODE, PARENT_CODE, COMM_CODE_NAME)
+        VALUES
+        ((SELECT COALESCE(MAX(COMM_CODE) + 1, 1) FROM comm_code WHERE PARENT_CODE = #{parentCode}),
+        #{parentCode},
+        #{codeName}
+        )
+	</insert>
+	
+	<delete id="categoryDelete">
+		delete COMM_CODE
+		WHERE COMM_CODE = #{commCode}
+	</delete>
+</mapper>

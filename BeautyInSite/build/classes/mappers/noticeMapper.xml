@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="notice">
+
+<!-- NOTICE -->
+
+<insert id="insertNotice">
+	INSERT INTO NOTICE
+	(NOTICE_NO,
+	ACC_NO,
+	NOTICE_TITLE,
+	NOTICE_CONTENT)
+    VALUES
+    (notice_seq.nextVal,
+    #{accNo},
+    #{noticeTitle},
+    #{noticeContent})
+</insert>
+
+<update id="updateNotice">
+	UPDATE NOTICE
+	SET 
+		NOTICE_TITLE = #{noticeTitle},
+		NOTICE_CONTENT= #{noticeContent}
+	where notice_no = #{noticeNo}
+</update>
+
+<delete id="deleteNotice">
+  delete from NOTICE
+  where notice_no = #{noticeNo}
+</delete>
+
+<select id="countList" resultType="int">
+  		SELECT COUNT(*) FROM NOTICE
+</select>
+
+<select id="noticeList" parameterType="map" resultType="noticeVO">
+		select A.* from(
+			select ROWNUM AS RNUM, B.* from(
+				select * from NOTICE order by notice_no DESC
+			)B
+			
+		<![CDATA[ where ROWNUM <= #{end}
+		)A where A.rnum >= #{start} ]]>
+</select>
+
+<select id="searchNotice" resultType="noticeVO">
+    SELECT *
+    FROM NOTICE
+    WHERE
+    <choose>
+        <!-- cate가 sbTitle인 경우 -->
+        <when test="noticeTitle != null">
+            NOTICE_TITLE LIKE '%'|| #{noticeTitle} ||'%'
+        </when>
+        <!-- cate가 sbContent인 경우 -->
+        <when test="noticeContent != null">
+            NOTICE_CONTENT LIKE '%'|| #{noticeContent} ||'%'
+        </when>
+    </choose>
+</select>
+	
+<select id="noticeDetail" resultType="noticeVO">
+	select notice_no, NOTICE_TITLE, NOTICE_CONTENT, notice_date
+		from NOTICE
+		where notice_no = #{noticeNo}
+</select>
+
+</mapper>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="review">
+
+	<insert id="insertReview">
+
+		INSERT INTO REVIEW(RV_NO, PROD_NO, ACC_NO, RV_RATING, RV_CONTENT, FILE_NO)
+		VALUES(REVIEW_SEQ.nextVal, #{prodNo}, #{accNo}, #{rvRating},
+		#{rvContent}, #{fileNo})
+
+	</insert>
+
+	<resultMap type="reviewVO" id="reviewMap">
+		<id column="RV_NO" property="rvNo" />
+		<result column="PROD_NO" property="prodNo" />
+		<result column="ACC_NO" property="accNo" />
+		<result column="RV_RATING" property="rvRating" />
+		<result column="RV_CONTENT" property="rvContent" />
+		<result column="RV_CREATE_DATE" property="rvCreateDate" />
+		<result column="RV_EDIT_DATE" property="rvEditDate" />
+		<result column="FILE_NO" property="fileNo" />
+		<result column="ID" property="id"/>
+		<result column="SK_TYPE" property="skType"/>
+		<result column="LIKE_CNT" property="likeCnt"/>
+		<collection property="atchfileDetList" resultMap="atchFileMap" />
+	</resultMap>
+
+	<resultMap type="AtchFileDetailVO" id="atchFileMap">
+		<result column="FILE_DET_NO" property="fileDetNo" />
+	</resultMap>
+
+
+
+	<select id="selectAll" resultMap="reviewMap">
+
+		<!-- SELECT A.*, B.FILE_DET_NO, C.SK_NO
+		FROM REVIEW A
+		LEFT OUTER JOIN FILE_DETAIL B ON A.FILE_NO = B.FILE_NO
+		LEFT JOIN ACCOUNT C ON A.ACC_NO = C.ACC_NO
+		WHERE A.PROD_NO = #{prodNo}
+		ORDER BY A.RV_CREATE_DATE DESC
+		 -->
+		 
+		SELECT A.*, B.FILE_DET_NO, C.ID, D.SK_TYPE, NVL(L.LIKE_COUNT,0) AS LIKE_CNT
+		FROM REVIEW A
+		LEFT OUTER JOIN FILE_DETAIL B ON A.FILE_NO = B.FILE_NO
+		LEFT JOIN ACCOUNT C ON A.ACC_NO = C.ACC_NO
+		LEFT JOIN SKIN D ON C.SK_NO = D.SK_NO
+		LEFT JOIN (
+		    SELECT RV_NO, COUNT(*) AS LIKE_COUNT
+		    FROM "LIKE"
+		    GROUP BY RV_NO
+		) L ON A.RV_NO = L.RV_NO
+		WHERE A.PROD_NO = #{prod_no}
+		ORDER BY A.RV_CREATE_DATE DESC
+
+	</select>
+
+	<select id="fileselectAll" resultType="AtchFileDetailVO">
+		SELECT FILE_DET_NO, FILE_NO, FILE_PATH, ST_FILENM, ORIGIN_FILENM, FILE_EXT,
+		FILE_CONTENTS, FILE_SIZE FROM
+		FILE_DETAIL
+	</select>
+
+	<select id="getFileDetNo" resultType="AtchFileDetailVO">
+		SELECT FILE_DET_NO FROM
+		FILE_DETAIL WHERE FILE_NO = #{fileNo}
+
+	</select>
+
+	<update id="updateReview">
+
+		UPDATE REVIEW
+		SET RV_RATING = #{rvRating}
+		,RV_CONTENT = #{rvContent}
+		,FILE_NO = #{fileNo}
+		WHERE ACC_NO = #{accNo} AND
+		RV_NO = #{rvNo} AND
+		PROD_NO = #{prodNo}
+
+	</update>
+
+	<select id="getReview" resultType="reviewVO">
+		SELECT
+		RV_NO,
+		PROD_NO,
+		ACC_NO,
+		RV_RATING,
+		RV_CONTENT,
+		RV_CREATE_DATE,
+		RV_EDIT_DATE
+		FROM REVIEW
+		WHERE RV_NO = #{rvNo}
+	</select>
+
+	<delete id="deleteReview">
+		DELETE FROM REVIEW
+		WHERE ACC_NO = #{accNo}
+		AND RV_NO = #{rvNo}
+		AND PROD_NO = #{prodNo}
+	</delete>
+	
+	<select id="getProdByReviewCount" resultType="reviewVO">
+		SELECT COUNT(*) CNT, ROUND(AVG(RV_RATING),0) AS RV_RATING
+		FROM REVIEW
+		WHERE PROD_NO = #{prodNo}
+	</select>
+	
+	<select id="isLikeItByUser" resultType="int">
+		SELECT COUNT(*)
+		FROM "LIKE"
+		WHERE RV_NO = #{rvNo} AND ACC_NO = #{accNo}
+	</select>
+	
+	<insert id="insertLikeIt">
+		INSERT INTO "LIKE"
+		(LIKE_NO, ACC_NO, RV_NO)
+		VALUES
+		(LIKE_NO_SEQ.NEXTVAL, #{accNo}, #{rvNo})
+	</insert>
+	
+	<delete id="deleteLikeIt">
+		DELETE "LIKE"
+		WHERE RV_NO = #{rvNo} AND ACC_NO = #{accNo}
+	</delete>
+	
+	<select id="getLikeCnt" resultType="int">
+		SELECT COUNT(*)
+		FROM "LIKE"
+		JOIN REVIEW R ON r.rv_no = "LIKE".rv_no
+		WHERE R.PROD_NO = #{prodNo}
+	</select>
+
+</mapper>

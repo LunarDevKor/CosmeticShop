@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="atchFile">
+
+	<insert id="insertAtchFile" parameterType = "com.cosmetic.common.vo.AtchFileDetailVO">
+	
+	<selectKey keyProperty ="fileNo" resultType="long" order="BEFORE">
+		select ATCH_FILE_SEQ.nextval from dual
+	</selectKey>
+		
+		INSERT INTO ATCH_FILE (
+		FILE_NO
+		)
+  		VALUES
+  		(
+  		#{fileNo}
+  		)
+	
+	</insert>
+
+	<insert id="insertAtchFileDetail">
+	    
+	INSERT INTO FILE_DETAIL (
+	FILE_DET_NO
+	, FILE_NO
+	, FILE_PATH
+	, ST_FILENM
+	, ORIGIN_FILENM
+	, FILE_EXT
+	)
+	VALUES
+	(
+    (select nvl(max(FILE_DET_NO),0)+1 from FILE_DETAIL where FILE_NO = #{fileNo})
+	,#{fileNo}
+	,#{filePath} <!-- 경로 -->
+	,#{stFilenm} <!-- 저장파일 -->
+	,#{originFilenm} <!-- 원본파일 -->
+	,#{fileExt} <!-- 확장명 -->
+	)
+	
+	
+	</insert>
+	
+	<select id="getatchFileDetail" resultType="AtchFileDetailVO">
+	
+	SELECT * FROM FILE_DETAIL
+    WHERE FILE_DET_NO = #{fileDetNo}
+    AND FILE_NO = #{fileNo}
+	
+	</select>
+	
+	<select id="getAtchFileList">
+	
+		
+	SELECT FILE_DET_NO, 
+        FILE_NO, 
+        FILE_PATH, 
+        ST_FILENM, 
+        ORIGIN_FILENM, 
+        FILE_EXT, 
+        FILE_CONTENTS, 
+        FILE_SIZE
+    FROM FILE_DETAIL
+    WHERE FILE_DET_NO = #{fileNo}
+	
+	</select>
+
+</mapper>

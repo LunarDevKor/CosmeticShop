@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="member">
+
+<select id="getNaverId" resultType="int">
+	select acc_no
+	from OAUTH_TOKENS
+	where auth_naverid = #{authNaverid}
+</select>
+
+<insert id="registerMemeber">
+<!-- 	<selectKey keyProperty="accNo" resultType="int" order="BEFORE" statementType="PREPARED"> -->
+<!-- 	select acc_no_SEQ.nextval from dual -->
+<!-- 	</selectKey> -->
+
+	insert into account
+	(acc_no, sk_no, id, pw, name, gender, ssn, email, tel, addr1, addr2, img_profile, zip_code)
+	values
+	(#{accNo},#{skNo} , #{id},#{pw},#{name},#{gender},#{ssn},#{email},#{tel},#{addr1},#{addr2},#{imgProfile},#{zipCode})
+</insert>
+
+<insert id="registerAuth" parameterType="java.util.HashMap">
+	insert into OAUTH_TOKENS
+	<choose>
+		<when test='authNaverid != null and ! authNaverid.equals("")'>
+		(acc_no, auth_naverid)
+		VALUES
+		(#{accNo}, #{authNaverid})
+		</when>
+		
+		<when test='authKakaoid != null and ! authKakaoid.equals("")'>
+		(acc_no, auth_kakaoid)
+		VALUES
+		(#{accNo}, #{authKakaoid})
+		</when>
+	</choose>
+</insert>
+
+<select id="memberLoginChk" resultType="memberVO">
+	select *
+	from account
+	where id = #{id} and pw = #{pw}
+</select>
+
+<select id="checkDupMemId" parameterType="java.lang.String" resultType="int">
+	select count(*)
+	from account
+	where id = #{id}
+</select>
+
+<select id="getMemberByAccNo" resultType="memberVO">
+	select *
+	from account
+	where acc_no = #{accNo}
+</select>
+
+<select id="getKakaoId" resultType="int">
+	select acc_no
+	from OAUTH_TOKENS
+	where auth_kakaoid = #{id}
+</select>
+
+<select id="getPointById" resultType="int">
+	select total_point
+	from point_history
+	where acc_no = #{accNo}
+</select>
+
+<delete id="deleteAccount">
+	delete account
+	where acc_no = #{accNo}
+</delete>
+
+<delete id="deleteAuthToken">
+	delete OAUTH_TOKENS
+	where acc_no = #{accNo}
+</delete>
+
+<select id="findId" resultType="String">
+	select id
+	from account
+	where name = #{name} and email = #{email}
+</select>
+
+<update id="accountUpdate">
+	update account
+	set 
+		email = #{email},
+		tel = #{tel},
+		zip_code = #{zipCode},
+		addr1 = #{addr1},
+		addr2 = #{addr2},
+		img_profile = #{imgProfile}
+	where acc_no = #{accNo}
+</update>
+
+<select id="passwordChk" resultType="int">
+	select count(*) as result
+	from account
+	where pw = #{pw} and acc_no = #{accNo}
+</select>
+
+</mapper>

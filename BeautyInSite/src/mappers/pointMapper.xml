@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="point">
+<select id="getPointHistory" resultType="pointVO">
+	select *
+	from point_history
+	where acc_no = #{accNo}
+</select>
+<update id="accruePoint">
+	update account
+	set point = (point + #{point}) - #{pointUse}
+	where acc_no = #{accNo}
+</update>
+</mapper>

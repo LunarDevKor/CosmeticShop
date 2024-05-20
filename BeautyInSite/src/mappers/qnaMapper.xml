@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="qna">
+
+<!-- QNA -->
+	
+<insert id="insertQna">
+	INSERT INTO SHOP_BOARD(SB_NO,SB_TITLE, SB_CONTENT, ACC_NO ,SB_CATE)
+    VALUES(sb_seq.nextVal,#{sbTitle},#{sbContent},#{accNo},#{sbCate})
+</insert>
+
+<select id="qnaList" resultType="java.util.HashMap">
+    SELECT A.*,
+    (SELECT "NAME" FROM "ACCOUNT" WHERE acc_no = A.acc_no) AS NAME,
+    (SELECT comm_code_name FROM comm_code WHERE comm_code = A.sb_cate) AS CODE_NAME
+    FROM shop_board A
+    WHERE SB_ANSWER IS NULL AND A.ACC_NO = #{accNo}
+    ORDER BY A.sb_no DESC
+</select>
+
+<select id="qnaDetail" resultType="java.util.HashMap">
+	select b.*, r.*,
+	 (SELECT "NAME" FROM "ACCOUNT" WHERE acc_no = b.acc_no) AS NAME,
+	 (SELECT comm_code_name FROM comm_code WHERE comm_code = b.sb_cate) AS CODE_NAME
+	from SHOP_BOARD b
+	left join SHOP_BOARD r on b.SB_NO = r.SB_ANSWER
+	where b.SB_NO = #{sbNo}
+</select>
+
+<insert id="qnaAnswer">
+    INSERT INTO SHOP_BOARD
+    (SB_NO, SB_TITLE, SB_CONTENT, ACC_NO, SB_CATE, SB_ANSWER)
+	VALUES
+	(sb_seq.nextVal,#{sbTitle},#{sbContent},#{accNo},#{sbCate},#{sbAnswer})
+</insert>
+
+<select id="getAnswer" resultType="java.util.HashMap">
+	select B.*, C.NAME, D.COMM_CODE_NAME
+	FROM
+		SHOP_BOARD A
+	LEFT JOIN
+		SHOP_BOARD B ON A.SB_NO = B.SB_ANSWER
+    LEFT JOIN 
+		ACCOUNT C ON A.acc_no = C.acc_no
+    LEFT JOIN
+		COMM_CODE D ON A.SB_CATE = D.COMM_CODE
+	WHERE
+	    A.SB_NO = #{sbNo} AND A.SB_ANSWER IS NULL
+        AND B.SB_NO IS NOT NULL
+</select>
+
+</mapper>

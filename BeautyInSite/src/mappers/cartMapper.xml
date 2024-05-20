@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cart">
+
+<!-- NOTICE -->
+
+<insert id="cartInsert">
+	INSERT INTO cart(CART_NO,ACC_NO, PROD_NO,CART_QTY)
+    VALUES(cart_seq.nextVal,#{accNo},#{prodNo},#{cartQty})
+</insert>
+<select id="isCartIn" resultType="int">
+	SELECT COUNT(*)
+	FROM CART
+	WHERE ACC_NO = #{accNo} AND PROD_NO = #{prodNo}
+</select>
+
+<resultMap type="prodVO" id="prodMap">
+	<result column="PROD_NAME" property="prodName"/>
+	<result column="PROD_PRICE" property="prodPrice"/>
+	<result column="PROD_IMG" property="prodImg"/>
+</resultMap>
+<resultMap type="cartVO" id="cartMap">
+	<id column="CART_NO" property="cartNo"/>
+	<result column="ACC_NO" property="accNo"/>
+	<result column="PROD_NO" property="prodNo"/>
+	<result column="CART_QTY" property="cartQty"/>
+	<result column="GRD_ACCR" property="grdAccr"/>
+	<association property="prodVO" resultMap="prodMap"/>
+</resultMap>
+<select id="cartList" resultMap="cartMap">
+	SELECT 
+	    c.cart_qty, 
+	    c.acc_no,
+	    c.cart_no,
+        g.GRD_ACCR,
+	    p.PROD_NAME, 
+	    p.PROD_PRICE, 
+	    p.PROD_IMG, 
+	    p.PROD_NO           
+	FROM cart c
+	JOIN PRODUCT p ON c.PROD_NO = p.PROD_NO
+    JOIN GRADE G ON G.GRD_NO = #{grdNo}
+	WHERE c.acc_NO = #{accNo}
+</select>
+<delete id="cartDelete">
+  delete from cart
+  where PROD_NO = #{prodNo} and ACC_NO = #{accNo}
+</delete>
+<update id="cartUpdate">
+	UPDATE cart
+	SET CART_QTY = #{cartQTY}
+	where CART_NO = #{cartNo}  
+</update>
+<delete id="cartClear">
+	delete from cart
+	where acc_no = #{accNo}
+</delete>
+<select id="getCartCnt" resultType="int">
+	select count(*)
+	from cart
+	where acc_no = #{accNo}
+</select>
+	
+</mapper>

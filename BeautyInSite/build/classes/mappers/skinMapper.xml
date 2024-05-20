@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="skin">
+
+<insert id="insertSkinType">
+
+<selectKey keyProperty="skNo,accNo" resultType="skinVO" order="BEFORE">
+select sk_no_seq.nextval as SK_NO,
+acc_no_seq.nextval as ACC_NO
+from dual
+</selectKey>
+	
+INSERT INTO skin
+(SK_NO, ACC_NO, SK_TYPE, ATOPI, MINGAM, SCNE, MIBAEG, PIGI, DARK, DRY, JULEUM, HONGJO, GAGJIL)
+VALUES (#{skNo}, #{accNo}, #{skType}, #{atopi}, #{mingam}, #{scne}, #{mibaeg}, #{pigi}, #{dark}, #{dry}, #{juleum}, #{hongjo}, #{gagjil})
+</insert>
+
+<select id="getSkinType" resultType="skinVO">
+select *
+from skin
+where acc_no = #{accNo}
+</select>
+
+<update id="updateSkinType">
+UPDATE skin
+SET
+   SK_TYPE = #{skType},
+   ATOPI = #{atopi},
+   MINGAM = #{mingam},
+   SCNE = #{scne},
+   MIBAEG = #{mibaeg},
+   PIGI = #{pigi},
+   DARK = #{dark},
+   DRY = #{dry},
+   JULEUM = #{juleum},
+   HONGJO = #{hongjo},
+   GAGJIL = #{gagjil}
+WHERE
+   ACC_NO = #{accNo}
+</update>
+
+</mapper>

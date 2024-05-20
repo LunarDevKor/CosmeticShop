@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chart">
+<select id="getDailyCharts" resultType="chartVO">
+<![CDATA[
+SELECT TO_CHAR(o.ORD_DATE, 'yyyy-mm-dd') AS PURCHASE_DATE,
+       SUM(p.PR_QTY) AS SALES_COUNT,
+       SUM(p.PR_PRICE) AS PROD_PRICE
+FROM "ORDER" o
+JOIN ORD_DETAIL p ON o.ORD_NO = p.ORD_NO
+GROUP BY TO_CHAR(o.ORD_DATE, 'yyyy-mm-dd')
+ORDER BY PURCHASE_DATE
+]]>
+</select>
+
+<select id="getMonthlyCharts" resultType="chartVO">
+SELECT TO_CHAR(o.ORD_DATE, 'yyyy-mm') AS PURCHASE_DATE,
+       SUM(p.PR_QTY) AS SALES_COUNT,
+       SUM(p.PR_PRICE) AS PROD_PRICE
+FROM "ORDER" o
+JOIN ORD_DETAIL p ON o.ORD_NO = p.ORD_NO
+GROUP BY TO_CHAR(o.ORD_DATE, 'yyyy-mm')
+ORDER BY PURCHASE_DATE
+</select
+>
+<select id="getMonthlyBuyer" resultType="chartVO">
+WITH MonthlyPurchaseRank AS (
+    SELECT TO_CHAR(o.ORD_DATE, 'YYYY-MM') AS PURCHASE_DATE,
+           o.ACC_NO AS BUYER,
+           COUNT(DISTINCT o.ORD_NO) AS SALES_COUNT,
+           RANK() OVER (PARTITION BY TO_CHAR(o.ORD_DATE, 'YYYY-MM') ORDER BY COUNT(DISTINCT o.ORD_NO) DESC) AS RANK_ORDER
+    FROM "ORDER" o
+    GROUP BY TO_CHAR(o.ORD_DATE, 'YYYY-MM'), o.ACC_NO
+),
+BuyerTotalSpent AS (
+    SELECT o.ACC_NO AS BUYER,
+           SUM(o.ORD_TOTALAMT) AS TOTAL_SPENT
+    FROM "ORDER" o
+    WHERE o.ACC_NO = o.ACC_NO
+    GROUP BY o.ACC_NO
+)
+SELECT MPR.PURCHASE_DATE,
+       A.NAME,
+       MPR.SALES_COUNT,
+       BTS.TOTAL_SPENT AS PROD_PRICE
+FROM (
+    SELECT PURCHASE_DATE,
+           BUYER,
+           SALES_COUNT,
+           RANK() OVER (PARTITION BY PURCHASE_DATE ORDER BY SALES_COUNT DESC) AS RANK_ORDER_MONTHLY
+    FROM MonthlyPurchaseRank
+) MPR
+JOIN ACCOUNT A ON A.ACC_NO = MPR.BUYER
+JOIN BuyerTotalSpent BTS ON BTS.BUYER = MPR.BUYER
+WHERE RANK_ORDER_MONTHLY <![CDATA[<=]]> 3
+ORDER BY MPR.PURCHASE_DATE, RANK_ORDER_MONTHLY
+</select>
+</mapper>
